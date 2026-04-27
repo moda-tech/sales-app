@@ -1,0 +1,178 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+.app { padding: 1rem 0; }
+.header { padding: 12px 16px; background: #E6F1FB; border-radius: var(--border-radius-lg); margin-bottom: 16px; border: 0.5px solid #B5D4F4; }
+.header h1 { font-size: 16px; font-weight: 500; color: #0C447C; }
+.table-wrap { border: 0.5px solid #B5D4F4; border-radius: var(--border-radius-lg); overflow: hidden; margin-bottom: 14px; }
+table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+col.c-name  { width: 30%; }
+col.c-price { width: 16%; }
+col.c-count { width: 14%; }
+col.c-dec   { width: 12%; }
+col.c-inc   { width: 12%; }
+col.c-sub   { width: 16%; }
+thead th { background: #D3D1C7; color: #444441; font-size: 12px; font-weight: 500; padding: 9px 8px; text-align: center; border-bottom: 0.5px solid #B4B2A9; white-space: nowrap; }
+thead th:first-child { text-align: left; padding-left: 14px; }
+tbody tr { border-top: 0.5px solid #D3D1C7; }
+tbody tr:nth-child(even) { background: #E6F1FB; }
+tbody tr:nth-child(odd)  { background: #F8F9FA; }
+tbody td { padding: 7px 8px; font-size: 13px; vertical-align: middle; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.td-name  { font-weight: 500; color: #185FA5; padding-left: 14px; }
+.td-price { text-align: right; color: #5F5E5A; font-size: 12px; }
+.td-count { text-align: center; font-size: 16px; font-weight: 500; color: #185FA5; }
+.td-btn   { text-align: center; }
+.btn-inc, .btn-dec { border: none; cursor: pointer; border-radius: var(--border-radius-md); font-size: 12px; font-weight: 500; padding: 5px 0; width: 100%; display: block; }
+.btn-inc { background: #B5D4F4; color: #0C447C; border: 0.5px solid #85B7EB; }
+.btn-dec { background: #D3D1C7; color: #444441; border: 0.5px solid #B4B2A9; }
+.btn-inc:active { background: #85B7EB; }
+.btn-dec:active { background: #B4B2A9; }
+.td-sub { text-align: right; font-weight: 500; color: #0C447C; padding-right: 14px; font-size: 12px; }
+.total-row { display: flex; align-items: center; justify-content: space-between; border: 0.5px solid #85B7EB; border-radius: var(--border-radius-lg); padding: 12px 18px; margin-bottom: 14px; background: #E6F1FB; }
+.total-label { font-size: 14px; color: #185FA5; }
+.total-val { font-size: 22px; font-weight: 500; color: #0C447C; }
+.save-btn { width: 100%; padding: 12px; background: #378ADD; color: #fff; font-size: 14px; font-weight: 500; border: none; border-radius: var(--border-radius-lg); cursor: pointer; }
+.save-btn:active { background: #185FA5; }
+.saved-toast { display: none; text-align: center; font-size: 12px; color: #185FA5; margin-top: 6px; font-weight: 500; }
+.log-section { margin-top: 20px; }
+.log-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 0.5px solid #B4B2A9; }
+.log-title { font-size: 13px; font-weight: 500; color: #5F5E5A; }
+.copy-all-btn { font-size: 12px; padding: 4px 12px; background: #E6F1FB; color: #185FA5; border: 0.5px solid #85B7EB; border-radius: 6px; cursor: pointer; }
+.copy-all-btn:active { background: #B5D4F4; }
+.copy-all-btn.copied { background: #B5D4F4; color: #0C447C; }
+.log-empty { font-size: 12px; color: #888780; text-align: center; padding: 16px 0; }
+.log-entry { border: 0.5px solid #B5D4F4; border-radius: var(--border-radius-md); padding: 10px 14px; margin-bottom: 8px; background: #fff; }
+.log-entry-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
+.log-meta { display: flex; gap: 10px; align-items: baseline; }
+.log-no { font-weight: 500; font-size: 13px; color: #185FA5; }
+.log-datetime { font-size: 11px; color: #888780; }
+.log-total { font-weight: 500; font-size: 14px; color: #0C447C; }
+.log-products { font-size: 12px; color: #5F5E5A; margin-top: 4px; }
+</style>
+
+<div class="app">
+  <h2 class="sr-only">販売個数管理アプリ</h2>
+  <div class="header"><h1>販売個数管理</h1></div>
+
+  <div class="table-wrap">
+    <table>
+      <colgroup>
+        <col class="c-name"><col class="c-price"><col class="c-count">
+        <col class="c-dec"><col class="c-inc"><col class="c-sub">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>商品名</th><th>単価</th><th>個数</th><th>－</th><th>＋</th><th>小計</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="total-row">
+    <span class="total-label">合計金額</span>
+    <span class="total-val" id="grandTotal">¥0</span>
+  </div>
+
+  <button class="save-btn" onclick="saveRecord()">会計記録を保存してリセット</button>
+  <div class="saved-toast" id="toast">保存しました</div>
+
+  <div class="log-section">
+    <div class="log-header-row">
+      <span class="log-title">会計記録</span>
+      <button class="copy-all-btn" id="copyAllBtn" onclick="copyAll()">全記録をコピー</button>
+    </div>
+    <div id="logList"><div class="log-empty">まだ記録がありません</div></div>
+  </div>
+</div>
+
+<script>
+const UNIT = 5000000;
+const PRODUCTS = ["123","1","2","3","4","5","6","456","123ゾロ","456ゾロ"];
+const counts = new Array(PRODUCTS.length).fill(0);
+
+function fmt(n) { return '¥' + n.toLocaleString('ja-JP'); }
+
+function render() {
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  let total = 0;
+  counts.forEach((cnt, i) => {
+    const sub = cnt * UNIT;
+    total += sub;
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      `<td class="td-name">${PRODUCTS[i]}</td>` +
+      `<td class="td-price">500万円</td>` +
+      `<td class="td-count">${cnt}個</td>` +
+      `<td class="td-btn"><button class="btn-dec" onclick="change(${i},-1)">▼</button></td>` +
+      `<td class="td-btn"><button class="btn-inc" onclick="change(${i},+1)">▲</button></td>` +
+      `<td class="td-sub">${fmt(sub)}</td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('grandTotal').textContent = fmt(total);
+}
+
+function change(i, delta) {
+  counts[i] = Math.max(0, counts[i] + delta);
+  render();
+}
+
+let toastTimer;
+function showToast() {
+  const t = document.getElementById('toast');
+  t.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.style.display = 'none'; }, 2000);
+}
+
+const records = [];
+
+function saveRecord() {
+  const total = counts.reduce((s, c) => s + c * UNIT, 0);
+  const detailArr = PRODUCTS.map((p, i) => ({ p, cnt: counts[i] })).filter(x => x.cnt > 0);
+  if (detailArr.length === 0) { alert('1個以上販売してから保存してください'); return; }
+  const now = new Date();
+  const ts = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  records.unshift({ no: records.length + 1, total, detailArr, ts });
+  counts.fill(0);
+  render();
+  renderLog();
+  showToast();
+}
+
+function recordToText(r) {
+  const items = r.detailArr.map(({p, cnt}) => `${p} × ${cnt}個`).join('\n');
+  return `${r.ts}\n${items}\n合計 ${fmt(r.total)}`;
+}
+
+function copyAll() {
+  if (records.length === 0) return;
+  const text = [...records].reverse().map(r => recordToText(r)).join('\n\n----------\n\n');
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyAllBtn');
+    btn.textContent = 'コピーしました';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '全記録をコピー'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function renderLog() {
+  const el = document.getElementById('logList');
+  if (records.length === 0) { el.innerHTML = '<div class="log-empty">まだ記録がありません</div>'; return; }
+  el.innerHTML = records.map((r) =>
+    `<div class="log-entry">
+      <div class="log-entry-header">
+        <div class="log-meta">
+          <span class="log-no">#${r.no}</span>
+          <span class="log-datetime">${r.ts}</span>
+        </div>
+        <span class="log-total">${fmt(r.total)}</span>
+      </div>
+      <div class="log-products">${r.detailArr.map(({p,cnt}) => `${p} × ${cnt}個`).join('　')}</div>
+    </div>`
+  ).join('');
+}
+
+render();
+</script>
